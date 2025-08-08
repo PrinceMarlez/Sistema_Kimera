@@ -3,14 +3,92 @@
 <head>
   <meta charset="UTF-8" />
   <title>Cadastro de Registros</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="stylesheet" href="styles.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0; padding: 0;
+      background: linear-gradient(to right, #f9f9f9, #e0e0e0);
+    }
+    .container {
+      background-color: #c50d0d;
+      color: white;
+      padding: 30px;
+      text-align: center;
+      border-radius: 0 0 10px 10px;
+    }
+    .box {
+      background-color: #fff;
+      margin: 30px auto;
+      padding: 30px;
+      max-width: 600px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    input, button {
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background-color: #4CAF50;
+      color: white;
+      font-weight: bold;
+      transition: background-color 0.3s ease;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+      margin-top: 20px;
+    }
+    li {
+      background-color: #f2f2f2;
+      margin: 8px 0;
+      padding: 10px;
+      border-radius: 5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    li button {
+      background-color: #e74c3c;
+      border: none;
+      padding: 6px 10px;
+      color: white;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    li button:hover {
+      background-color: #c0392b;
+    }
+    .search-box {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      justify-content: center;
+    }
+    .search-box input {
+      max-width: 200px;
+    }
+  </style>
 </head>
 <body>
   <div class="container">
     <h1>Bem-vindo ao Sistema de Registro</h1>
-    <h2>Cadastro de Registros</h2>
+    <h1>Cadastro de Registros</h1>
   </div>
+
   <div class="box">
     <p>Preencha o formulário abaixo para cadastrar um novo registro.</p>
 
@@ -22,17 +100,23 @@
       <input type="text" id="servico" placeholder="Serviço" required />
       <input type="text" id="descricao" placeholder="Descrição" />
       <input type="date" id="dataEntrega" placeholder="Data de Entrega" />
-      
       <input type="search" id="status" list="statusOptions" placeholder="Status" />
       <datalist id="statusOptions">
-        <option value="Pendente">
-        <option value="Em Andamento">
-        <option value="Concluído">
-        <option value="Cancelado">
+        <option value="Pendente"></option>
+        <option value="Em Andamento"></option>
+        <option value="Concluído"></option>
+        <option value="Cancelado"></option>
       </datalist>
-
       <button type="submit">Cadastrar</button>
     </form>
+
+    <h2>Pesquisar Registros</h2>
+    <div class="search-box">
+      <input type="text" id="searchNome" placeholder="Pesquisar por Nome" />
+      <input type="text" id="searchCpf" placeholder="Pesquisar por CPF" />
+      <button id="btnPesquisar">Pesquisar</button>
+      <button id="btnLimpar">Limpar</button>
+    </div>
 
     <h2>Registros Cadastrados</h2>
     <ul id="listaRegistros"></ul>
@@ -41,15 +125,23 @@
   <script>
     const form = document.getElementById('formRegistro');
     const lista = document.getElementById('listaRegistros');
+    const searchNome = document.getElementById('searchNome');
+    const searchCpf = document.getElementById('searchCpf');
+    const btnPesquisar = document.getElementById('btnPesquisar');
+    const btnLimpar = document.getElementById('btnLimpar');
 
-    async function carregarRegistros() {
+    // Carrega registros com filtros opcionais
+    async function carregarRegistrosComFiltro(nome = '', cpf = '') {
       lista.innerHTML = '<li>Carregando...</li>';
       try {
-        const res = await fetch('http://localhost:3000/registros');
-        if (!res.ok) throw new Error('Falha ao buscar registros');
+        const params = new URLSearchParams();
+        if (nome) params.append('nome', nome);
+        if (cpf) params.append('cpf', cpf);
+
+        const res = await fetch(`http://localhost:3000/registros/search?${params.toString()}`);
         const registros = await res.json();
 
-        if (registros.length === 0) {
+        if (!registros.length) {
           lista.innerHTML = '<li>Nenhum registro encontrado.</li>';
           return;
         }
@@ -57,19 +149,23 @@
         lista.innerHTML = '';
         registros.forEach(registro => {
           const li = document.createElement('li');
-          li.textContent = `${registro.nome} - ${registro.servico} - Status: ${registro.status || 'N/A'}`;
+          li.textContent = `${registro.nome} | CPF: ${registro.cpf || 'N/A'} | Serviço: ${registro.servico} | Status: ${registro.status || 'N/A'}`;
 
-          // Botão deletar
           const btnDeletar = document.createElement('button');
           btnDeletar.textContent = 'Deletar';
           btnDeletar.onclick = async () => {
             if (confirm(`Deseja realmente deletar o registro de ${registro.nome}?`)) {
               try {
-                const resDel = await fetch(`http://localhost:3000/registros/${registro._id}`, { method: 'DELETE' });
-                if (!resDel.ok) throw new Error('Erro ao deletar');
-                carregarRegistros();
+                const resDel = await fetch(`http://localhost:3000/registros/${registro._id}`, {
+                  method: 'DELETE'
+                });
+                if (resDel.ok) {
+                  carregarRegistrosComFiltro(searchNome.value.trim(), searchCpf.value.trim());
+                } else {
+                  alert('Erro ao deletar registro');
+                }
               } catch (err) {
-                alert('Erro ao deletar registro');
+                alert('Erro na requisição de deletar');
                 console.error(err);
               }
             }
@@ -83,7 +179,8 @@
       }
     }
 
-    form.addEventListener('submit', async (e) => {
+    // Evento submit do formulário para criar registro
+    form.addEventListener('submit', async e => {
       e.preventDefault();
 
       const dados = {
@@ -111,14 +208,27 @@
         }
 
         form.reset();
-        carregarRegistros();
+        carregarRegistrosComFiltro(searchNome.value.trim(), searchCpf.value.trim());
       } catch (err) {
-        alert('Erro ao cadastrar registro');
         console.error(err);
+        alert('Erro ao cadastrar registro');
       }
     });
 
-    carregarRegistros();
+    // Evento clicar botão pesquisar
+    btnPesquisar.addEventListener('click', () => {
+      carregarRegistrosComFiltro(searchNome.value.trim(), searchCpf.value.trim());
+    });
+
+    // Evento clicar botão limpar pesquisa
+    btnLimpar.addEventListener('click', () => {
+      searchNome.value = '';
+      searchCpf.value = '';
+      carregarRegistrosComFiltro();
+    });
+
+    // Carregar todos registros ao iniciar
+    carregarRegistrosComFiltro();
   </script>
 </body>
 </html>
