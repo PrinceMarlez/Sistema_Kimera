@@ -40,6 +40,7 @@ button {
   color: white;
   font-weight: bold;
   transition: background-color 0.3s ease;
+  cursor: pointer;
 }
 
 button:hover {
@@ -68,8 +69,29 @@ li button {
   color: white;
   border-radius: 4px;
   cursor: pointer;
+  transition: background-color 0.3s ease;
 }
 
 li button:hover {
   background-color: #c0392b;
+}
+
+.search-container {
+  margin: 20px 0;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.search-container input {
+  flex: 1;
+  max-width: 300px;
+  padding: 10px;
+  font-size: 16px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+
+.search-container button {
+  padding: 10px 20px;
 }

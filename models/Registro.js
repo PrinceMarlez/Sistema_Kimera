@@ -8,7 +8,7 @@ const registroSchema = new mongoose.Schema({
   servico: { type: String, required: true },
   descricao: String,
   dataEntrega: Date,
-  status: String,
+  status: String
 });
 
 module.exports = mongoose.model('Registro', registroSchema);

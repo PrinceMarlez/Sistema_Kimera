@@ -20,6 +20,8 @@ const uri = `mongodb+srv://${DB_USER}:${DB_PASSWORD}@${DB_CLUSTER}/${DB_NAME}?re
 mongoose.connect(uri)
   .then(() => {
     console.log('MongoDB conectado');
-    app.listen(3000, () => console.log('Servidor rodando na porta 3000'));
+    app.listen(3000, () => {
+      console.log('Servidor rodando na porta 3000');
+    });
   })
   .catch(err => console.error('Erro ao conectar ao MongoDB:', err));
